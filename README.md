@@ -26,6 +26,13 @@ cp .env.example .env          # then set SECRET_KEY
 
 Open the GraphiQL explorer at http://127.0.0.1:8000/graphql/
 
+## What you get
+
+The GraphiQL explorer at `/graphql/`, with the schema, docs and autocomplete
+that Graphene generates from the models.
+
+![GraphiQL](docs/graphiql.png)
+
 ## API
 
 ```graphql
