@@ -39,7 +39,7 @@ that Graphene generates from the models.
 # query
 { allProducts { id title price stock } }
 
-# mutations
+# mutations (faqat staff foydalanuvchi: avval /admin/ orqali kiring)
 mutation { createProduct(title: "Laptop", price: 1200, stock: 5) { message } }
 mutation { updateProduct(id: 1, price: 1100) { message } }
 mutation { deleteProduct(id: 1) { message } }
