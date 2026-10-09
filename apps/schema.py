@@ -1,9 +1,16 @@
-from pyexpat.errors import messages
-
 import graphene
 from graphene_django import DjangoObjectType
-from django.contrib.auth.models import User
-from .models import  Product
+from graphql import GraphQLError
+
+from .models import Product
+
+
+def require_staff(info):
+    """Mutatsiyalar faqat staff foydalanuvchiga (/admin/ orqali kirgan sessiya)."""
+    user = info.context.user
+    if not (user.is_authenticated and user.is_staff):
+        raise GraphQLError("Ruxsat yo'q: bu amal uchun admin sifatida kiring.")
+
 
 class ProductType(DjangoObjectType):
     class Meta:
@@ -27,6 +34,7 @@ class CreateProduct(graphene.Mutation):
         stock = graphene.Int(required=True)
 
     def mutate(self, info, title, price, stock):
+        require_staff(info)
         Product.objects.create(title=title , price=price, stock=stock)
         return CreateProduct(message = "yaratildi")
 
@@ -41,12 +49,16 @@ class UpdateProduct(graphene.Mutation):
         price = graphene.Int()
 
     def mutate(self, info, id, title=None, stock=None, price=None):
-        product = Product.objects.get(pk=id)
-        if title:
+        require_staff(info)
+        product = Product.objects.filter(pk=id).first()
+        if product is None:
+            raise GraphQLError("Mahsulot topilmadi")
+        # `is not None`: 0 ham to'g'ri qiymat (narx/qoldiq 0 ga tushirilishi mumkin)
+        if title is not None:
             product.title = title
-        if stock:
+        if stock is not None:
             product.stock = stock
-        if price:
+        if price is not None:
             product.price = price
 
 
@@ -61,10 +73,11 @@ class DeleteProduct(graphene.Mutation):
 
 
     def mutate(self, info, id):
+        require_staff(info)
         query = Product.objects.filter(pk=id)
         if query.exists():
             query.delete()
-        return UpdateProduct(message="Post o'chirildi")
+        return DeleteProduct(message="Post o'chirildi")
 
 
 class Mutation(graphene.ObjectType):
